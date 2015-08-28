@@ -60,9 +60,15 @@ class colorcoder(sublime_plugin.EventListener):
         set = sublime.load_settings("colorcoder.sublime-settings")
         if view.file_name():
             filename = os.path.split(view.file_name())[1]
-            dotp = filename.rfind('.')
-            ext = '' if dotp == -1 else filename[dotp+1:]
-            if (set.has('enabled_for') and ext not in set.get('enabled_for')) or ext in set.get('disabled_for',[]):
+
+            enable_colorcode = True
+            if set.has('enabled_for'):
+                enable_colorcode = any(filename.endswith("." + ext) for ext in set.get('enabled_for'))
+
+            if enable_colorcode:
+                enable_colorcode = !any(filename.endswith("." + ext) for ext in set.get('disabled_for',[]))
+
+            if !enable_colorcode:
                 view.settings().set('colorcode',False)
                 return
 
@@ -73,7 +79,7 @@ class colorcoder(sublime_plugin.EventListener):
             return
 
         vcc = view.settings().get('color_scheme')
-        if vcc and "Widget" in vcc: 
+        if vcc and "Widget" in vcc:
             view.settings().set('colorcode',False)
             return
 
